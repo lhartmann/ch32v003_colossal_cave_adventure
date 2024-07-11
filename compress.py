@@ -134,8 +134,9 @@ token_count_sorted = sort_tokens_by_count(token_count_map)
 print(f"Longest token is {longest_token(token_count_map)} characters")
 print("Diffent tokens by size:", tokens_by_size(token_count_map))
 print("Usage count by size:", token_count_by_size(token_count_map))
-print("token_total_length(token_count_map):",token_total_length(token_count_map))
-print("token_total_count(token_count_map):",token_total_count(token_count_map))
+print("Unique tokens:",len(token_count_map.keys()))
+print("Sum of unique token lenghts:",token_total_length(token_count_map))
+print("Total tokens in text:",token_total_count(token_count_map))
 
 # for i in range(len(token_count_sorted)):
 #     token,count = token_count_sorted[i]
