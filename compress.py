@@ -54,16 +54,7 @@ def simplify_text(text):
     # text = re.sub("^ ", "", text)
     return text
 
-# 
-separators = []
-def tokenize_separators(text):
-    for entry in re.finditer("[A-Z]([^A-Z]+)[A-Z]", "A"+text+"A"):
-        separators.append(entry[1])
-
-core_tokens = [
-    " !.,?!()$", 
-]
-def tokenize_string(text):
+def tokenize_message(text):
     ret = []
     for entry in re.finditer("([A-Z]*)([\"'.,/?!-+/ ])", text):
         if entry[1]:
@@ -71,9 +62,8 @@ def tokenize_string(text):
         if entry[2] != " ":
             ret.append(entry[2])
     return ret
-    #text = re.sub("[\n_!{}()<>=+-*/,.]", " ", text)
 
-def tokenize(text, message_tokenizer=tokenize_string):
+def tokenize_text(text, message_tokenizer=tokenize_message):
     ret = []
     for entry in re.finditer("#([0-9]+)\n([^#]*)\n", text):
         entry_id = int(entry[1])
@@ -86,18 +76,23 @@ def tokenize(text, message_tokenizer=tokenize_string):
         while len(ret) < entry_id - 1:
             ret.append([])
 
-        ret.append(tokenize_string(entry_text))
+        ret.append(tokenize_message(entry_text))
 
         # sanity check
         if len(ret) != entry_id:
             print(f"Probable issue at #{entry[1]}...")
     return ret
 
-def separator_test():
-    tokenize(texts[0], tokenize_separators)
-    tokenize(texts[1], tokenize_separators)
-    tokenize(texts[2], tokenize_separators)
-    tokenize(texts[3], tokenize_separators)
+# TEST: Check what kinds of separators are there
+def test_separators():
+    separators = []
+    def tokenize_separators(text):
+        for entry in re.finditer("[A-Z]([^A-Z]+)[A-Z]", "A"+text+"A"):
+            separators.append(entry[1])
+    tokenize_text(texts[0], tokenize_separators)
+    tokenize_text(texts[1], tokenize_separators)
+    tokenize_text(texts[2], tokenize_separators)
+    tokenize_text(texts[3], tokenize_separators)
     print(set(separators))
 
 def count_token_instances(tokenized_texts):
@@ -110,29 +105,33 @@ def count_token_instances(tokenized_texts):
                 except KeyError:
                     ret[token] = 1
     return ret
+
 def sort_tokens_by_count(token_count_map):
-    token_count_sorted = [ (k,v) for k,v in token_count_map.items()]
+    token_count_sorted = [ (token,count) for token,count in token_count_map.items()]
     token_count_sorted.sort(key=lambda e: e[1])
     return token_count_sorted
+
 def longest_token(token_count_map):
     return max([ len(key) for key in token_count_map.keys() ])
-def token_count_by_size(token_count_map):
-    ret = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+
+def tokens_by_size(token_count_map):
+    ret = [0] * (1+longest_token(token_count_map))
     for token,count in token_count_map.items():
         ret[len(token)] += 1
     return ret
-def token_occurences_by_size(token_count_map):
-    ret = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+
+def token_count_by_size(token_count_map):
+    ret = [0] * (1+longest_token(token_count_map))
     for token,count in token_count_map.items():
         ret[len(token)] += count
     return ret
 
-tokenized_text = [ tokenize(text) for text in texts ]
+tokenized_text = [ tokenize_text(text) for text in texts ]
 token_count_map    = count_token_instances(tokenized_text)
 token_count_sorted = sort_tokens_by_count(token_count_map)
 print(f"Longest token is {longest_token(token_count_map)} characters")
+print(tokens_by_size(token_count_map))
 print(token_count_by_size(token_count_map))
-print(token_occurences_by_size(token_count_map))
 
 # for i in range(len(token_count_sorted)):
 #     token,count = token_count_sorted[i]
