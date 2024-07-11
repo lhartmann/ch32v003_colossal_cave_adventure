@@ -48,10 +48,6 @@ def simplify_text(text):
     text = " " + text + " "
     text = re.sub("\n", " ", text)
     text = re.sub(" +", " ", text)
-    text = re.sub("\"$", "\" ", text)
-    text = re.sub("\"$", "\" ", text)
-    # text = re.sub(" $", "", text)
-    # text = re.sub("^ ", "", text)
     return text
 
 def tokenize_message(text):
