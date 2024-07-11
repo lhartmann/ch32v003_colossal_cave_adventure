@@ -122,13 +122,29 @@ def token_count_by_size(token_count_map):
         ret[len(token)] += count
     return ret
 
+def token_total_length(token_count_map):
+    return sum([len(token) for token,count in token_count_map.items()])
+
+def token_total_count(token_count_map):
+    return sum([count for token,count in token_count_map.items()])
+
 tokenized_text = [ tokenize_text(text) for text in texts ]
 token_count_map    = count_token_instances(tokenized_text)
 token_count_sorted = sort_tokens_by_count(token_count_map)
 print(f"Longest token is {longest_token(token_count_map)} characters")
 print("Diffent tokens by size:", tokens_by_size(token_count_map))
 print("Usage count by size:", token_count_by_size(token_count_map))
+print("token_total_length(token_count_map):",token_total_length(token_count_map))
+print("token_total_count(token_count_map):",token_total_count(token_count_map))
 
 # for i in range(len(token_count_sorted)):
 #     token,count = token_count_sorted[i]
 #     print(f"{i} / {len(token_count_sorted)-i}: '{token}' {count}")
+
+
+# At this point there are
+#   ~8kB in dictionary data, or ~5kB with 5bit per character.
+#   ~10k tokens used for full-text.
+# Need work to create VLQ code, and select which symbols use a singel byte.
+# There are only 23 1-character tokens, and they are used > 2k times.
+# May be useful for compressing the token usage list: https://excamera.com/sphinx/article-compression.html
