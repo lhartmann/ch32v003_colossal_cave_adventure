@@ -251,8 +251,75 @@ def test_compress_dictionary():
 # Word is a list of characters with added null-terminator.
 # RAW size is 10046B.
 # Compresses to 5710B using VLQ4 and sorting by frequency.
-test_compress_dictionary()
+# test_compress_dictionary()
+
+def codegen(txt, brk, depth, prefix = ""):
+    if depth == 0:
+        return []
+    r = []
+    for digit in txt[0:brk]:
+        r.append(prefix+digit)
+    for digit in txt[brk:]:
+        r = r + codegen(txt, brk, depth-1, prefix+digit)
+    return r
+
+def codegen_64(a,b):
+    r = []
+    for i in range(64-a):
+        r.append(f"{i:06b}")
+    for i in range(64-a, 64-b):
+        for j in range(4):
+            r.append(f"{i:06b}{j:02b}")
+    for i in range(64-b, 64):
+        for j in range(2**10):
+            r.append(f"{i:06b}{j:010b}")
+    return r
 
 # Text includes
 #   ~10k tokens used for full-text.
 # May be useful for compressing the token usage list: https://excamera.com/sphinx/article-compression.html
+def test_compress_text():
+    # Generate the simplified text file. Usefull for grep-ing stuff.
+    test_simplified_text_file()
+
+    if True: # VLQ8 code
+        code = []
+        code_break = 251
+        codelen = 4/8
+        for i in range(code_break):
+            code.append(f"{i:02x}")
+        for i in range(code_break,256):
+            for j in range(code_break):
+                code.append(f"{i:02x}{j:02x}")
+        code.reverse()
+
+    if False: # Base64 VLQ1
+        codelen=6/8
+        code = codegen("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",59,3)
+        code.sort(key=lambda c: len(c))
+        code.reverse()
+
+    if True: # Base64 VLQ2
+        codelen=1/8
+        code = codegen_64(30,2)
+        code.sort(key=lambda c: len(c))
+        code.reverse()
+
+    token_count_sorted.reverse()
+    mapper = { word:code.pop() for word,count in token_count_sorted }
+    token_count_sorted.reverse()
+
+    uncompressed_bytes = sum([2*count for word,count in token_count_sorted])
+    compressed_bytes = codelen * sum([count*len(mapper[word]) for word,count in token_count_sorted])
+
+    print(f"char = code        => count x length = space")
+    for word,count in token_count_sorted:
+        N = count
+        L = len(mapper[word]) * codelen
+        print(f"{word:>15} = {mapper[word]:<11} => {N:>5} x {L:<6} = {N*L}")
+    print(f"char = code        => count x length = space")
+    print("Unique words:", len(token_count_sorted))
+    print("Total bytes, uncompressed..:", uncompressed_bytes)
+    print("Total bytes, compressed....:", compressed_bytes)
+
+test_compress_text()
