@@ -80,6 +80,22 @@ def tokenize_text(text, message_tokenizer=tokenize_message):
             print(f"Probable issue at #{entry[1]}...")
     return ret
 
+# TEST: Create a file with simplified text.
+# Each line is a message, all uppercase.
+# No file separators, no message ID numbers.
+#   44220 bytes raw data
+#   13862 bytes with gzip -9
+def test_simplified_text_file():
+    simplified_texts = [ tokenize_text(text, lambda x: x) for text in texts ]
+    res = ""
+    for text in simplified_texts:
+        for message in text:
+            res += message + "\n"
+    res = re.sub("\n +","\n", res)
+    res = re.sub(" +\n","\n", res)
+    with open("tokenized_text.dat", "w") as f:
+        f.write(res)
+
 # TEST: Check what kinds of separators are there
 def test_separators():
     separators = []
