@@ -1,11 +1,12 @@
 #! /usr/bin/env python3
 import sys
 
-raw = open("adventure/src/advent1.txt","r").read();
+#raw = open("adventure/src/advent1.txt","r").read();
+raw = open("tokenized_text.dat","r").read();
 
 O = 2**8 - 1    # lookback distance
 M = 3           # minimum viable compression size
-N = 2**5 -1 + M # maximum compression size
+N = 2**8 -1 + M # maximum compression size
 
 def test_oportunity(want, have):
     if want[0:M] != have[0:M]:
@@ -22,7 +23,6 @@ def get_all_oportunities():
     #   j = raw source position,
     #   m = raw length
     # )
-    # Results are intrinsically sorted by i then j, and will probably overlap.
     oportunities = []
     for i in range(len(raw)):
         want = raw[i:i+N]
@@ -31,6 +31,11 @@ def get_all_oportunities():
             m = test_oportunity(want, have)
             if m >= M:
                 oportunities.append((i,j,m))
+
+    # Results are intrinsically sorted by i then j, and will probably overlap.
+    # It is better to sort by i then -m.
+    oportunities.sort(key=lambda o: (o[0], -o[2]))
+
     return oportunities
 
 def remove_oportunities_that_end_on_the_same_byte(oportunities):
@@ -116,9 +121,11 @@ print(f"O {O}, M {M}, N {N}")
 oportunities = get_all_oportunities()
 conflicts = count_conflicting_oportunities(oportunities)
 bytes_saveable = sum(o[2] for o in oportunities)
+largest_oportunity = max(m for i,j,m in oportunities)
 
 print("Total oportunities:")
 print(f"  Count......: {len(oportunities)}")
+print(f"  Largest....: {largest_oportunity}")
 print(f"  Conflicts..: {conflicts}")
 print(f"  Bytes......: {bytes_saveable}")
 
@@ -126,9 +133,11 @@ oportunities = remove_oportunities_that_end_on_the_same_byte(oportunities)
 oportunities = remove_small_nested_oportunities(oportunities)
 conflicts = count_conflicting_oportunities(oportunities)
 bytes_saveable = sum(o[2] for o in oportunities)
+largest_oportunity = max(m for i,j,m in oportunities)
 
 print("Selected oportunities:")
 print(f"  Count......: {len(oportunities)}")
+print(f"  Largest....: {largest_oportunity}")
 print(f"  Conflicts..: {conflicts}")
 print(f"  Bytes......: {bytes_saveable}")
 
@@ -145,4 +154,5 @@ for cluster in clusters:
     print(f"Cluster: {len(cluster)} conflicts.")
     for oportunity in cluster:
         i,j,m = oportunity
-        print(f"  Oportunity: {i:6}, {j:6}, {m:3}, \"{raw[j:j+m]}\"")
+        data = raw[j:j+m].replace("\n","\\n")
+        print(f"  Oportunity: {i:6}, {j:6}, {m:3}, \"{data}\"")
