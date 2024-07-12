@@ -71,9 +71,9 @@ def tokenize_text(text, message_tokenizer=tokenize_message):
 
         # Advent2.txt has a few missing indices
         while len(ret) < entry_id - 1:
-            ret.append([])
+            ret.append(message_tokenizer(""))
 
-        ret.append(tokenize_message(entry_text))
+        ret.append(message_tokenizer(entry_text))
 
         # sanity check
         if len(ret) != entry_id:
