@@ -92,7 +92,7 @@ def test_simplified_text_file():
     for text in simplified_texts:
         for message in text:
             res += message + "\n"
-    with open("tokenized_text.dat", "w") as f:
+    with open("simplified_text.txt", "w") as f:
         f.write(res)
 
 # TEST: Check what kinds of separators are there
