@@ -86,13 +86,12 @@ def tokenize_text(text, message_tokenizer=tokenize_message):
 #   44220 bytes raw data
 #   13862 bytes with gzip -9
 def test_simplified_text_file():
-    simplified_texts = [ tokenize_text(text, lambda x: x) for text in texts ]
+    message_tokenizer = lambda msg: re.sub("^ +| +$","",msg)
+    simplified_texts = [ tokenize_text(text, message_tokenizer) for text in texts ]
     res = ""
     for text in simplified_texts:
         for message in text:
             res += message + "\n"
-    res = re.sub("\n +","\n", res)
-    res = re.sub(" +\n","\n", res)
     with open("tokenized_text.dat", "w") as f:
         f.write(res)
 
