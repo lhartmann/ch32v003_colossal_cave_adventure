@@ -1,6 +1,8 @@
 #! /usr/bin/env python3
 import re
 import itertools
+import numpy as np
+import .codetree
 
 # Load text files, making all uppercase.
 textfiles = [
@@ -274,6 +276,22 @@ def codegen_64(a,b):
         for j in range(2**10):
             r.append(f"{i:06b}{j:010b}")
     return r
+
+def export_tokenized_text():
+    mapper = {}
+    for i in range(len(token_count_sorted)):
+        word = token_count_sorted[i][0]
+        mapper[word] = i+2
+
+    tokens = []
+    for text in tokenized_text:
+        for message in text:
+            for word in message:
+                tokens.append(mapper[word])
+            tokens.append(0)
+        tokens.append(1)
+    np.save("tokenized_text.npy", tokens)
+export_tokenized_text();
 
 # Text includes
 #   ~10k tokens used for full-text.
