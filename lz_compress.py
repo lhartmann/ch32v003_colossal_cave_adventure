@@ -18,7 +18,7 @@ def test_oportunity(want, have):
             return m
     return 0
 
-def get_all_oportunities():
+def get_all_oportunities(raw):
     # Tuples: (
     #   i = raw destination position,
     #   j = raw source position,
@@ -123,47 +123,48 @@ def cluster_size_distribution(clusters):
         sizes[len(cluster)] += 1
     return sizes
 
-print(list(range(N-1, M-1, -1)))
-print(f"O {O}, M {M}, N {N}")
-oportunities = get_all_oportunities()
-conflicts = count_conflicting_oportunities(oportunities)
-bytes_saveable = sum(o[2] for o in oportunities)
-largest_oportunity = max(m for i,j,m in oportunities)
-size_distribution = oportunity_size_distribution(oportunities)
+if __name__ == "__main__":
+    print(list(range(N-1, M-1, -1)))
+    print(f"O {O}, M {M}, N {N}")
+    oportunities = get_all_oportunities(raw)
+    conflicts = count_conflicting_oportunities(oportunities)
+    bytes_saveable = sum(o[2] for o in oportunities)
+    largest_oportunity = max(m for i,j,m in oportunities)
+    size_distribution = oportunity_size_distribution(oportunities)
 
-print("Total oportunities:")
-print(f"  Count......: {len(oportunities)}")
-print(f"  Largest....: {largest_oportunity}")
-print(f"  Sizes......: {size_distribution}")
-print(f"  Conflicts..: {conflicts}")
-print(f"  Bytes......: {bytes_saveable}")
+    print("Total oportunities:")
+    print(f"  Count......: {len(oportunities)}")
+    print(f"  Largest....: {largest_oportunity}")
+    print(f"  Sizes......: {size_distribution}")
+    print(f"  Conflicts..: {conflicts}")
+    print(f"  Bytes......: {bytes_saveable}")
 
-oportunities = remove_oportunities_that_end_on_the_same_byte(oportunities)
-oportunities = remove_small_nested_oportunities(oportunities)
-conflicts = count_conflicting_oportunities(oportunities)
-bytes_saveable = sum(o[2] for o in oportunities)
-largest_oportunity = max(m for i,j,m in oportunities)
-size_distribution = oportunity_size_distribution(oportunities)
+    oportunities = remove_oportunities_that_end_on_the_same_byte(oportunities)
+    oportunities = remove_small_nested_oportunities(oportunities)
+    conflicts = count_conflicting_oportunities(oportunities)
+    bytes_saveable = sum(o[2] for o in oportunities)
+    largest_oportunity = max(m for i,j,m in oportunities)
+    size_distribution = oportunity_size_distribution(oportunities)
 
-print("Selected oportunities:")
-print(f"  Count......: {len(oportunities)}")
-print(f"  Largest....: {largest_oportunity}")
-print(f"  Sizes......: {size_distribution}")
-print(f"  Conflicts..: {conflicts}")
-print(f"  Bytes......: {bytes_saveable}")
+    print("Selected oportunities:")
+    print(f"  Count......: {len(oportunities)}")
+    print(f"  Largest....: {largest_oportunity}")
+    print(f"  Sizes......: {size_distribution}")
+    print(f"  Conflicts..: {conflicts}")
+    print(f"  Bytes......: {bytes_saveable}")
 
-clusters = clusterize_oportunity_conflicts(oportunities)
-largest_cluster = max(len(cluster) for cluster in clusters)
+    clusters = clusterize_oportunity_conflicts(oportunities)
+    largest_cluster = max(len(cluster) for cluster in clusters)
 
-print("Clustered oportunities:")
-print(f"  Count......: {len(clusters)}")
-print(f"  Largest....: {largest_cluster}")
-print(f"  Sizes......: {cluster_size_distribution(clusters)}")
+    print("Clustered oportunities:")
+    print(f"  Count......: {len(clusters)}")
+    print(f"  Largest....: {largest_cluster}")
+    print(f"  Sizes......: {cluster_size_distribution(clusters)}")
 
-for cluster in clusters:
-    if len(cluster) < 9: continue
-    print(f"Cluster: {len(cluster)} conflicts.")
-    for oportunity in cluster:
-        i,j,m = oportunity
-        data = raw[j:j+m]#.replace("\n","\\n")
-        print(f"  Oportunity: {i:6}, {j:6}, {m:3}, \"{data}\"")
+    for cluster in clusters:
+        if len(cluster) < 9: continue
+        print(f"Cluster: {len(cluster)} conflicts.")
+        for oportunity in cluster:
+            i,j,m = oportunity
+            data = raw[j:j+m]#.replace("\n","\\n")
+            print(f"  Oportunity: {i:6}, {j:6}, {m:3}, \"{data}\"")
