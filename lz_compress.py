@@ -1,8 +1,9 @@
 #! /usr/bin/env python3
 import sys
+import numpy as np
 
-#raw = open("adventure/src/advent1.txt","r").read();
-raw = open("tokenized_text.dat","r").read();
+raw = list(np.load("tokenized_text.npy"))
+#raw = open("simplified_text.txt","r").read();
 
 O = 2**8 - 1    # lookback distance
 M = 3           # minimum viable compression size
@@ -110,6 +111,12 @@ def clusterize_oportunity_conflicts(oportunities):
 def largest_cluster_size(clusters):
     return max(len(cluster) for cluster in clusters)
 
+def oportunity_size_distribution(oportunities):
+    sizes = [0] * (1+max(m for i,j,m in oportunities))
+    for i,j,m in oportunities:
+        sizes[m] += 1
+    return sizes
+
 def cluster_size_distribution(clusters):
     sizes = [0] * (largest_cluster_size(clusters)+1)
     for cluster in clusters:
@@ -122,10 +129,12 @@ oportunities = get_all_oportunities()
 conflicts = count_conflicting_oportunities(oportunities)
 bytes_saveable = sum(o[2] for o in oportunities)
 largest_oportunity = max(m for i,j,m in oportunities)
+size_distribution = oportunity_size_distribution(oportunities)
 
 print("Total oportunities:")
 print(f"  Count......: {len(oportunities)}")
 print(f"  Largest....: {largest_oportunity}")
+print(f"  Sizes......: {size_distribution}")
 print(f"  Conflicts..: {conflicts}")
 print(f"  Bytes......: {bytes_saveable}")
 
@@ -134,10 +143,12 @@ oportunities = remove_small_nested_oportunities(oportunities)
 conflicts = count_conflicting_oportunities(oportunities)
 bytes_saveable = sum(o[2] for o in oportunities)
 largest_oportunity = max(m for i,j,m in oportunities)
+size_distribution = oportunity_size_distribution(oportunities)
 
 print("Selected oportunities:")
 print(f"  Count......: {len(oportunities)}")
 print(f"  Largest....: {largest_oportunity}")
+print(f"  Sizes......: {size_distribution}")
 print(f"  Conflicts..: {conflicts}")
 print(f"  Bytes......: {bytes_saveable}")
 
@@ -154,5 +165,5 @@ for cluster in clusters:
     print(f"Cluster: {len(cluster)} conflicts.")
     for oportunity in cluster:
         i,j,m = oportunity
-        data = raw[j:j+m].replace("\n","\\n")
+        data = raw[j:j+m]#.replace("\n","\\n")
         print(f"  Oportunity: {i:6}, {j:6}, {m:3}, \"{data}\"")
