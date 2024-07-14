@@ -2,9 +2,6 @@
 import sys
 import numpy as np
 
-raw = list(np.load("tokenized_text.npy"))
-#raw = open("simplified_text.txt","r").read();
-
 O = 2**8 - 1    # lookback distance
 M = 3           # minimum viable compression size
 N = 2**8 -1 + M # maximum compression size
@@ -124,6 +121,9 @@ def cluster_size_distribution(clusters):
     return sizes
 
 if __name__ == "__main__":
+    raw = list(np.load("tokenized_text.npy"))
+    #raw = open("simplified_text.txt","r").read();
+
     print(list(range(N-1, M-1, -1)))
     print(f"O {O}, M {M}, N {N}")
     oportunities = get_all_oportunities(raw)
