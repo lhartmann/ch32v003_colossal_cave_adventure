@@ -2,11 +2,7 @@
 import sys
 import numpy as np
 
-O = 2**8 - 1    # lookback distance
-M = 3           # minimum viable compression size
-N = 2**8 -1 + M # maximum compression size
-
-def test_oportunity(want, have):
+def test_oportunity(want, have, O,M,N):
     if want[0:M] != have[0:M]:
         return 0
 
@@ -15,7 +11,7 @@ def test_oportunity(want, have):
             return m
     return 0
 
-def get_all_oportunities(raw):
+def get_all_oportunities(raw, O,M,N):
     # Tuples: (
     #   i = raw destination position,
     #   j = raw source position,
@@ -26,7 +22,7 @@ def get_all_oportunities(raw):
         want = raw[i:i+N]
         for j in range(max(0,i-O), i):
             have = raw[j:min(i, j+N)]
-            m = test_oportunity(want, have)
+            m = test_oportunity(want, have, O,M,N)
             if m >= M:
                 oportunities.append((i,j,m))
 
@@ -124,9 +120,13 @@ if __name__ == "__main__":
     raw = list(np.load("tokenized_text.npy"))
     #raw = open("simplified_text.txt","r").read();
 
+    O = 2**8 - 1    # lookback distance
+    M = 3           # minimum viable compression size
+    N = 2**8 -1 + M # maximum compression size
+
     print(list(range(N-1, M-1, -1)))
     print(f"O {O}, M {M}, N {N}")
-    oportunities = get_all_oportunities(raw)
+    oportunities = get_all_oportunities(raw, O,M,N)
     conflicts = count_conflicting_oportunities(oportunities)
     bytes_saveable = sum(o[2] for o in oportunities)
     largest_oportunity = max(m for i,j,m in oportunities)
