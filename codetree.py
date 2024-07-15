@@ -8,10 +8,16 @@
 # take 0 means final code
 # use 0 means use as compression tokens.
 
+class CompressionRange:
+    def __init__(self, _prefix = 0, _length = 0, _start = 0):
+        self.prefix = _prefix
+        self.length = _length
+        self.start = _start
+
 def parse_spec(
     spec, off, prefix,
     push_literal_code=lambda code:None,
-    push_compression_range=lambda prefix,length,start:None
+    push_compression_range=lambda cr:None
 ):
     take = spec[off]
     # print(f"take {take}")
@@ -34,7 +40,7 @@ def parse_spec(
                 suffix = "0" * take + f"{u:b}"
                 suffix = suffix[-take:]
                 #print(f"{prefix+suffix:<16} = Compression codes.")
-            push_compression_range(prefix, take, used)
+            push_compression_range(CompressionRange(prefix, take, used))
             return off
         for u in range(use):
             suffix = "0" * take + f"{used+u:b}"
@@ -49,17 +55,17 @@ def generate_symbols(spec):
     compress_ranges = []
     def push_literal(literal):
         literals.append(literal)
-    def push_compression_range(prefix, length, start):
-        compress_ranges.append((prefix, length, start))
+    def push_compression_range(cr):
+        compress_ranges.append(cr)
     parse_spec(spec, 0, "", push_literal, push_compression_range)
     literals.sort(key = lambda literal: (len(literal),literal))
     return literals, compress_ranges
 
 if __name__ == "__main__":
     print_code = lambda code: print(f"{code:<16} = Literals")
-    def print_comp(prefix, length, start):
-        p=prefix+"x"*length
-        print(f"{p:<16} = Compression, starting at {start}")
+    def print_comp(cr):
+        p=cr.prefix+"x"*cr.length
+        print(f"{p:<16} = Compression, starting at {cr.start}")
 
     spec = [
         3, # takes 3 bit
@@ -90,3 +96,9 @@ if __name__ == "__main__":
 
     L, C = generate_symbols(spec)
     print(L, C)
+
+def make_compression_symbol(value, compress_range):
+    value += compress_range.start
+    value = "0"*compress_range.length + f"{value:b}"
+    value = value[-compress_range.length:]
+    return compress_range.prefix + value
