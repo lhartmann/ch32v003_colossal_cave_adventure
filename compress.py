@@ -2,7 +2,8 @@
 import re
 import itertools
 import numpy as np
-import .codetree
+import codetree
+import collections
 
 # Load text files, making all uppercase.
 textfiles = [
@@ -159,7 +160,11 @@ def token_character_counts_sorted(token_count_map, include_unused=True):
     return counts
 
 tokenized_text = [ tokenize_text(text) for text in texts ]
-token_count_map    = count_token_instances(tokenized_text)
+#token_count_map    = count_token_instances(tokenized_text)
+token_count_map    = collections.Counter([word
+                                          for text in tokenized_text
+                                          for message in text
+                                          for word in message])
 token_count_sorted = sort_tokens_by_count(token_count_map)
 print(f"Longest token is {longest_token(token_count_map)} characters")
 print("Diffent tokens by size:", tokens_by_size(token_count_map))
@@ -167,6 +172,10 @@ print("Usage count by size:", token_count_by_size(token_count_map))
 print("Unique tokens:",len(token_count_map.keys()))
 print("Sum of unique token lenghts:",token_total_length(token_count_map))
 print("Total tokens in text:",token_total_count(token_count_map))
+
+token_frequency_map = collections.Counter(token_count_map.values())
+token_frequency_distribution = [token_frequency_map[i]
+                                for i in range(max(token_frequency_map.keys())+1)]
 
 def VLQ4_encode(n):
     r = ""
@@ -331,13 +340,15 @@ def test_compress_text():
     compressed_bytes = codelen * sum([count*len(mapper[word]) for word,count in token_count_sorted])
 
     print(f"char = code        => count x length = space")
-    for word,count in token_count_sorted:
+    for index,(word,count) in enumerate(token_count_sorted):
         N = count
         L = len(mapper[word]) * codelen
-        print(f"{word:>15} = {mapper[word]:<11} => {N:>5} x {L:<6} = {N*L}")
+        print(f"{index:>4}:{len(token_count_sorted)-index-1:<4} {word:>15} = {mapper[word]:<11} => {N:>5} x {L:<6} = {N*L}")
     print(f"char = code        => count x length = space")
-    print("Unique words:", len(token_count_sorted))
-    print("Total bytes, uncompressed..:", uncompressed_bytes)
-    print("Total bytes, compressed....:", compressed_bytes)
+    print("Total words.................:", sum(token_count_map.values()))
+    print("Unique words................:", len(token_count_map))
+    print("Word frequncy distribution..:", token_frequency_distribution);
+    print("Total bytes, uncompressed...:", uncompressed_bytes)
+    print("Total bytes, compressed.....:", compressed_bytes)
 
 test_compress_text()
