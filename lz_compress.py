@@ -2,6 +2,19 @@
 import sys
 import numpy as np
 
+class CompressionOportunity:
+    def __init__(self, _start, _source, _length):
+        self.start  = _start
+        self.source = _source
+        self.length = _length
+    def end(self):
+        return self.start + self.length
+    def overlaps(self, other):
+        return ( self.start >= other.start and  self.start < other.end()) \
+            or (other.start >= self.start  and othen.start <  self.end())
+    def covers(self, other):
+        return self.start <= othen.start and self.end() >= other.end()
+
 def test_oportunity(want, have, O,M,N):
     if want[0:M] != have[0:M]:
         return 0
@@ -24,11 +37,11 @@ def get_all_oportunities(raw, O,M,N):
             have = raw[j:min(i, j+N)]
             m = test_oportunity(want, have, O,M,N)
             if m >= M:
-                oportunities.append((i,j,m))
+                oportunities.append(CompressionOportunity(i,j,m))
 
     # Results are intrinsically sorted by i then j, and will probably overlap.
     # It is better to sort by i then -m.
-    oportunities.sort(key=lambda o: (o[0], -o[2]))
+    oportunities.sort(key=lambda o: (o.start, -o.length))
 
     return oportunities
 
@@ -36,25 +49,23 @@ def remove_oportunities_that_end_on_the_same_byte(oportunities):
     p = 0 # previous index
     while p < len(oportunities)-1:
         n = p+1 # next index
-        pi,pj,pm = oportunities[p]
-        ni,nj,nm = oportunities[n]
+        po = oportunities[p]
+        no = oportunities[n]
         # Long strings will produce multiple matches, but smaller every time.
         # Remove all squential matches that end on the same raw byte.
-        if ni+nm == pi+pm:
+        if no.end() == po.end():
             oportunities.pop(n)
         else:
             p += 1
     return oportunities
 
 def is_contained(external, internal):
-    ai, aj, am = external
-    bi, bj, bm = internal
-    return bi >= ai and bi+bm <= ai+am
+    return internal.start >= external.start and internal.end() <= external.end()
 
 def are_overlapping(oportunity1, oportunity2):
-    ai, aj, am = oportunity1
-    bi, bj, bm = oportunity2
-    return (bi >= ai and bi < ai+am) or (ai >= bi and ai < bi+bm)
+    a = oportunity1
+    b = oportunity2
+    return (b.start >= a.start and b.start < b.end()) or (a.start >= b.start and a.start < b.end())
 
 def remove_small_nested_oportunities(oportunities):
     p = 0 # previous index
@@ -101,13 +112,19 @@ def clusterize_oportunity_conflicts(oportunities):
 
     return clusters
 
+def declusterize_oportunity_conflicts(clusters):
+    return [ oportunity for cluster in clusters for oportunity in cluster ]
+
+def reclusterize_oportunity_conflicts(clusters):
+    return clusterize_oportunity_conflicts(declusterize_oportunity_conflicts(clusters))
+
 def largest_cluster_size(clusters):
     return max(len(cluster) for cluster in clusters)
 
 def oportunity_size_distribution(oportunities):
-    sizes = [0] * (1+max(m for i,j,m in oportunities))
-    for i,j,m in oportunities:
-        sizes[m] += 1
+    sizes = [0] * (1+max(o.length for o in oportunities))
+    for o in oportunities:
+        sizes[o.length] += 1
     return sizes
 
 def cluster_size_distribution(clusters):
