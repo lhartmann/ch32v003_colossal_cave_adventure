@@ -133,6 +133,55 @@ def cluster_size_distribution(clusters):
         sizes[len(cluster)] += 1
     return sizes
 
+def naive_conflict_resolver(oportunities):
+    p = 0
+    n = 1
+    while n < len(oportunities):
+        po = oportunities[p]
+        no = oportunities[n]
+
+        if is_contained(po, no):
+            oportunities.pop(n)
+            continue
+
+        if is_contained(no, po):
+            oportunities.pop(p)
+            continue
+
+        if not are_overlapping(oportunities[n], oportunities[p]):
+            p += 1
+            n = p+1
+            continue
+
+        overlap = po.end() - no.start
+        if overlap > 0:
+            no.start  += overlap
+            no.source += overlap
+            no.length -= overlap
+            oportunities[n] = no
+        n = n+1
+        if n == len(oportunities):
+            p = p+1
+            n = p+1
+
+    return oportunities
+
+def uncompressed_symbol_frequency(raw, oportunities):
+    counts = {}
+    o = 0
+    r = 0
+    while r < len(raw):
+        if o < len(oportunities) and r == oportunities[o].start:
+            r += oportunities[o].length
+            o += 1
+        else:
+            try:
+                counts[raw[r]] += 1
+            except KeyError:
+                counts[raw[r]] = 1
+            r += 1
+    return counts
+
 if __name__ == "__main__":
     raw = list(np.load("tokenized_text.npy"))
     #raw = open("simplified_text.txt","r").read();
